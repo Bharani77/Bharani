@@ -1,49 +1,58 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class FileChecker {
-    public static void main(String[] args) throws IOException {
-        // Define the network shared path
-        String sharedPath = "//server/share/folder/";
-        
-        // Define the list of names
-        List<String> names = new ArrayList<>();
-        names.add("Aravind");
-        names.add("John");
-        names.add("BharaniDharan");
+public class CheckFileInNetworkPath {
 
-        // Get the current date in the specified format
-        LocalDate currentDate = LocalDate.now();
-        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("dd_MMM_yyyy"));
+    public static void main(String[] args) {
         
-        // Create the report file
-        File reportFile = new File("report.txt");
-        FileWriter writer = new FileWriter(reportFile);
+        // Define network shared path
+        String sharedPath = "\\\\servername\\foldername\\subfoldername\\";
         
-        // Check each name in the list for the file with the specified format
-        for (String name : names) {
-            String fileName = name + "_" + formattedDate + ".txt";
+        // Define file name format with current date
+        DateFormat dateFormat = new SimpleDateFormat("dd_MMM_yyyy");
+        String fileNameFormat = "BharaniDharan_" + dateFormat.format(new Date());
+        
+        // Define list of names
+        List<String> names = List.of("Aravind", "John", "BharaniDharan");
+        
+        // Check if file exists for each name
+        names.forEach(name -> {
+            String fileName = fileNameFormat + "_" + name + ".txt";
             File file = new File(sharedPath + fileName);
-            if (file.exists()) {
-                writer.write(name + " - Updated\n");
-            } else {
-                writer.write(name + " - Not Updated\n");
+            
+            // Append name and status to report file
+            try (FileWriter writer = new FileWriter("report.txt", true)) {
+                if (file.exists()) {
+                    writer.write(name + " - Updated\n");
+                } else {
+                    writer.write(name + " - Not Updated\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        });
+        
+        // Read report file and send email
+        try {
+            String reportContent = Files.lines(Paths.get("report.txt")).collect(Collectors.joining(System.lineSeparator()));
+            String subject = "File Check Report";
+            String body = "Please find the attached report for file check status.";
+            String recipient = "recipient@example.com";
+            String attachmentPath = "report.txt";
+            
+            EmailSender.sendEmail(recipient, subject, body, attachmentPath, reportContent);
+            
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         
-        // Close the report file writer
-        writer.close();
-        
-        // Send the report file as an attachment in an email
-        String recipient = "recipient@example.com";
-        String subject = "File Report";
-        String body = "Please find the attached file report.";
-        String attachmentPath = reportFile.getAbsolutePath();
-        EmailSender.sendEmail(recipient, subject, body, attachmentPath);
     }
 }
