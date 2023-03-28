@@ -1,0 +1,84 @@
+Option Explicit
+
+' Constants
+Const SEARCH_STRING = "[Internal Reference] -" ' The specific string to search for in the calendar subject
+Const SPREADSHEET_FILE = "C:\Users\{Your_User_Name}\Documents\OutlookData.xlsx" ' Replace with the path to your spreadsheet file
+
+' Variables
+Dim objOutlook, objNamespace, objCalendars, objCalendar, objItems
+Dim objExcel, objWorkbook, objWorksheet
+Dim iRow
+
+' Create Outlook application object
+Set objOutlook = CreateObject("Outlook.Application")
+
+' Get namespace object
+Set objNamespace = objOutlook.GetNamespace("MAPI")
+
+' Get calendars folder object
+Set objCalendars = objNamespace.GetDefaultFolder(9).Folders
+
+' Create Excel application object
+Set objExcel = CreateObject("Excel.Application")
+
+' Open workbook
+Set objWorkbook = objExcel.Workbooks.Open(SPREADSHEET_FILE)
+
+' Get first worksheet
+Set objWorksheet = objWorkbook.Worksheets(1)
+
+' Find last used row in worksheet
+iRow = objWorksheet.UsedRange.Rows.Count + 1
+
+' Loop through all calendars
+For Each objCalendar In objCalendars
+    ' Get calendar items collection object
+    Set objItems = objCalendar.Items
+
+    ' Filter calendar items by search string
+    objItems.Restrict "[Subject] LIKE '%" & SEARCH_STRING & "%'"
+
+    ' Loop through filtered calendar items
+    For Each objItem In objItems
+        ' Write data to spreadsheet
+        objWorksheet.Cells(iRow, 1) = objItem.Subject
+        objWorksheet.Cells(iRow, 2) = objItem.Start
+        objWorksheet.Cells(iRow, 3) = objItem.End
+        objWorksheet.Cells(iRow, 4) = objCalendar.Name
+        iRow = iRow + 1
+    Next
+
+    ' Loop through emails in calendar
+    For Each objItem In objCalendar.Items
+        If objItem.Class = 43 Then ' Check if item is an email
+            ' Parse name from email body
+            Dim strBody, strName
+            strBody = objItem.Body
+            strName = Mid(strBody, InStr(strBody, "Hi") + 2)
+
+            ' Write data to spreadsheet
+            objWorksheet.Cells(iRow, 1) = objItem.Subject
+            objWorksheet.Cells(iRow, 2) = objItem.SentOn
+            objWorksheet.Cells(iRow, 4) = objCalendar.Name
+            objWorksheet.Cells(iRow, 5) = strName
+            iRow = iRow + 1
+        End If
+    Next
+Next
+
+' Save and close workbook
+objWorkbook.Save
+objWorkbook.Close
+
+' Quit Excel application
+objExcel.Quit
+
+' Release objects from memory
+Set objWorksheet = Nothing
+Set objWorkbook = Nothing
+Set objExcel = Nothing
+Set objItems = Nothing
+Set objCalendars = Nothing
+Set objCalendar = Nothing
+Set objNamespace = Nothing
+Set objOutlook = Nothing
