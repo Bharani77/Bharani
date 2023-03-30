@@ -1,0 +1,5 @@
+Although there are various advantages and disadvantages to moving to AWS EC2 instances, a key benefit is cost reduction, particularly if on-premises servers are only used during patching and standby periods. By scaling instances as needed, moving to AWS can significantly reduce costs compared to maintaining on-premises Windows machines.
+
+However, there are also challenges to consider, such as the need to submit request forms for opening firewall rules, which can be a time-consuming process. Additionally, transitioning from on-premises to AWS may affect E2E dashboards, but this should not be an issue until Ansible Tower has been migrated to the cloud.
+
+Given these factors, it may be advisable to conduct a proof of concept (PoC) before fully transitioning to AWS EC2 instances. Therefore, proceeding with on-premises solutions for the time being could be a prudent course of action.
