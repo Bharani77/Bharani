@@ -1,0 +1,1 @@
+The SRE team is collaborating with the Power BI team to develop a dashboard that provides a centralized location for visualizing and executing automated end-to-end and health check jobs. The purpose of this dashboard is to monitor the health of the application across different domains. Additionally, in case of any issues, the automated jobs can be triggered to resolve the problem
